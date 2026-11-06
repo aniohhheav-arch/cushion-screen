@@ -1,0 +1,36 @@
+plugins { id 'net.neoforged.moddev' version "${mdg_version}" }
+
+sourceSets.main {
+    java.srcDir '../common/src/main/java'
+    resources.srcDir '../common/src/main/resources'
+}
+
+neoForge {
+    version = neoforge_version
+    mods {
+        cushionscreen { sourceSet sourceSets.main }
+    }
+    runs {
+        client { client() }
+        server { server() }
+    }
+}
+
+dependencies {
+    // FFmpeg through JavaCPP, nested inside the mod jar
+    implementation "org.bytedeco:javacpp:${javacpp_version}"
+    implementation "org.bytedeco:ffmpeg:${ffmpeg_version}"
+    jarJar "org.bytedeco:javacpp:${javacpp_version}"
+    jarJar "org.bytedeco:ffmpeg:${ffmpeg_version}"
+    rootProject.ext.nativePlatforms.each { platform ->
+        implementation "org.bytedeco:javacpp:${javacpp_version}:${platform}"
+        implementation "org.bytedeco:ffmpeg:${ffmpeg_version}:${platform}"
+        jarJar "org.bytedeco:javacpp:${javacpp_version}:${platform}"
+        jarJar "org.bytedeco:ffmpeg:${ffmpeg_version}:${platform}"
+    }
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('META-INF/neoforge.mods.toml') { expand 'version': project.version }
+}

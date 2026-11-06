@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "cushionscreen:block/cushion_screen_side",
+    "north": "cushionscreen:block/cushion_screen_front",
+    "south": "cushionscreen:block/cushion_screen_side",
+    "east": "cushionscreen:block/cushion_screen_side",
+    "west": "cushionscreen:block/cushion_screen_side",
+    "up": "cushionscreen:block/cushion_screen_side",
+    "down": "cushionscreen:block/cushion_screen_side"
+  }
+}

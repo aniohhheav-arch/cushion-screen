@@ -1,0 +1,27 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "MIT"
+
+[[mods]]
+modId = "cushionscreen"
+version = "${version}"
+displayName = "Cushion Screen"
+authors = "Cushion Screen contributors"
+logoFile = "assets/cushionscreen/icon.png"
+description = '''
+Build giant screens out of padded Cushion Screen blocks and watch your own videos on them, in sync with everyone nearby.
+'''
+
+[[dependencies.cushionscreen]]
+modId = "neoforge"
+type = "required"
+versionRange = "[26.3,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.cushionscreen]]
+modId = "minecraft"
+type = "required"
+versionRange = "[26.3,26.4)"
+ordering = "NONE"
+side = "BOTH"

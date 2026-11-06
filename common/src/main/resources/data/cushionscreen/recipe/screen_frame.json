@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "W": "minecraft:gray_wool",
+    "S": "minecraft:string"
+  },
+  "pattern": [
+    "WSW",
+    "S S",
+    "WSW"
+  ],
+  "result": {
+    "id": "cushionscreen:screen_frame",
+    "count": 8
+  }
+}

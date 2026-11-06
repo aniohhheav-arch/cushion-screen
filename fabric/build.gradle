@@ -1,0 +1,52 @@
+plugins { id 'net.fabricmc.fabric-loom' version "${loom_version}" }
+
+sourceSets.main {
+    java.srcDir '../common/src/main/java'
+    resources.srcDir '../common/src/main/resources'
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+
+    // FFmpeg through JavaCPP, nested inside the mod jar (see NATIVES in the README for slim builds).
+    implementation "org.bytedeco:javacpp:${javacpp_version}"
+    implementation "org.bytedeco:ffmpeg:${ffmpeg_version}"
+    include "org.bytedeco:javacpp:${javacpp_version}"
+    include "org.bytedeco:ffmpeg:${ffmpeg_version}"
+    rootProject.ext.nativePlatforms.each { platform ->
+        implementation "org.bytedeco:javacpp:${javacpp_version}:${platform}"
+        implementation "org.bytedeco:ffmpeg:${ffmpeg_version}:${platform}"
+        include "org.bytedeco:javacpp:${javacpp_version}:${platform}"
+        include "org.bytedeco:ffmpeg:${ffmpeg_version}:${platform}"
+    }
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') { expand 'version': project.version }
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging { events 'passed', 'failed', 'skipped'; exceptionFormat 'full' }
+}
+
+// In-game client tests (./gradlew :fabric:runClientGameTest), driven by Fabric's client game-test API.
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = 'cushionscreen-gametest'
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = false
+        clearRunDirectory = true
+    }
+}

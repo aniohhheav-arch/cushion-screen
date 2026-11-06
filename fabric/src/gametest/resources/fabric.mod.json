@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "cushionscreen-gametest",
+  "version": "1.0.0",
+  "name": "Cushion Screen in-game tests",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-client-gametest": ["dev.cushionscreen.gametest.CushionScreenClientGameTest"]
+  },
+  "depends": { "cushionscreen": "*" }
+}

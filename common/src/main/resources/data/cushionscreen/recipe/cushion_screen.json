@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "W": "minecraft:black_wool",
+    "G": "minecraft:glass_pane",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "WGW",
+    "GRG",
+    "WGW"
+  ],
+  "result": {
+    "id": "cushionscreen:cushion_screen",
+    "count": 6
+  }
+}

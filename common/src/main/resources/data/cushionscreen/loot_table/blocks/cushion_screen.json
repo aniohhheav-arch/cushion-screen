@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "cushionscreen:cushion_screen"
+        }
+      ]
+    }
+  ],
+  "random_sequence": "cushionscreen:blocks/cushion_screen"
+}

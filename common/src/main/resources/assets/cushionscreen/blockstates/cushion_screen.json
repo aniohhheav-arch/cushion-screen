@@ -1,0 +1,26 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "cushionscreen:block/cushion_screen_vertical",
+      "x": 180
+    },
+    "facing=up": {
+      "model": "cushionscreen:block/cushion_screen_vertical"
+    },
+    "facing=north": {
+      "model": "cushionscreen:block/cushion_screen"
+    },
+    "facing=east": {
+      "model": "cushionscreen:block/cushion_screen",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "cushionscreen:block/cushion_screen",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "cushionscreen:block/cushion_screen",
+      "y": 270
+    }
+  }
+}
