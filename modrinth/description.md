@@ -1,63 +1,81 @@
-# Cushion Screen
+# 📺 Cushion Screen
 
 **Build a cinema in your world.** Place padded Cushion Screen blocks in a rectangle of any size, right-click, pick a video from your computer, and watch it on the blocks, with sound, in sync with everyone nearby.
 
-## Features
+---
 
-- **Screens of any size.** Tiles that face the same way fuse into one seamless display, from a 1×1 TV up to a 64×64 drive-in screen. They work on walls, floors and ceilings.
-- **Your own videos.** MP4, WebM, MOV and MKV, picked with your system's normal file dialog. Videos keep their shape (letterboxed, never stretched) at any resolution.
-- **Real sound.** The audio comes from the screen's position in the world and fades with distance. It stays in sync with the picture, and switches to normal stereo in fullscreen.
-- **Watch together.** Play, pause, seek and loop are shared by everyone, and every player sees the same moment.
-- **Only one player needs the file.** Everyone else gets the video through the server automatically, with a progress bar on the screen. Players who join later get it from the server's copy.
-- **Proper controls.** A right-click menu with a live preview, a seek slider, play/pause/stop, loop, fullscreen, your own volume and "mute for me".
-- **Owner settings.** Screen name, power, brightness, speaker volume, picture rotation, and who may control it: everyone, the owner only, or operators only.
-- **Polish.** A CRT-style power-on and power-off, a NO SIGNAL screen, a loading animation, an on-screen time display, a soft glow in the picture's colours, and real block light while it plays.
-- **Decorative frames.** Padded Screen Frame blocks to build a bezel around your screen.
+## ✨ Features
 
-## Crafting
+- 🧱 **Screens of any size**: from a 1×1 TV to a 64×64 drive-in screen, on walls, floors or ceilings. The blocks fuse into one seamless picture.
+- 🎬 **Your own videos**: MP4, WebM, MOV and MKV, picked with your normal file window. Videos keep their shape and are never stretched.
+- 🔊 **Real sound**: comes from the screen's spot in the world, fades with distance and stays in sync with the picture.
+- 👥 **Watch together**: play, pause, seek and loop are shared, so everyone sees the same moment.
+- 📤 **Only one player needs the file**: everyone else gets the video through the server automatically, with a progress bar on the screen.
+- 🎛️ **Easy controls**: a right-click menu with a live preview, a seek slider, loop, fullscreen, your own volume and "mute for me".
+- 🔒 **Owner settings**: name, power, brightness, speaker volume, picture rotation, and who may control it.
+- 💡 **Little touches**: an old-TV power-on, a NO SIGNAL screen, a soft glow in the picture's colours, and real light while it plays.
+- 🖼️ **Padded Screen Frame** blocks to build a border around your screen.
 
-| Block | Recipe | Makes |
-|---|---|---|
-| Cushion Screen | Black wool in the corners, glass panes on the sides, redstone in the middle | 6 |
-| Padded Screen Frame | Gray wool in the corners, string on the sides, middle empty | 8 |
+---
+
+## 🛠️ Crafting
+
+**Cushion Screen** ×6
+Black wool in the four corners, glass panes on the four sides, redstone in the middle.
+
+**Padded Screen Frame** ×8
+Gray wool in the four corners, string on the four sides, middle empty.
 
 Both are also in the **Cushion Screen** creative tab.
 
-## How to use
+---
 
-1. Build a filled rectangle of Cushion Screens. Clicking the side of an existing screen extends it.
-2. Right-click it, then **Select Video…** and pick a file.
-3. Use **Play**, drag the slider to seek, or open **Fullscreen** (Space: play/pause, ← →: 10 seconds, Esc: back).
+## ▶️ How to use
 
-## Multiplayer
+1. Build a **filled rectangle** of Cushion Screens. Click the side of a screen to make it bigger.
+2. **Right-click** it and choose **Select Video…**
+3. Press **Play**, drag the slider to jump around, or open **Fullscreen**.
 
-The mod is needed on the **server and on every player's game**.
+**Fullscreen keys:** `Space` play/pause · `←` `→` jump 10 seconds · `Esc` back
 
-When a player loads a video, the server keeps everyone on one shared timeline. Players who don't have the file get it through the server: the player who loaded it uploads it in the background, and the server keeps a checked copy and sends it on. Every copy is verified against the original file's SHA-256 before it plays.
+---
 
-Server owners can change this in `config/cushionscreen-server.json`:
+## 🌐 Multiplayer
 
-| Setting | Default | |
-|---|---|---|
-| `shareVideos` | `true` | Pass videos between players through the server |
-| `maxVideoSizeMB` | `4096` | Largest video the server passes along |
-| `cacheSizeMB` | `16384` | Disk space for shared videos; oldest removed first |
-| `maxConcurrentUploads` | `2` | Players uploading at the same time |
+Install the mod on the **server** and on **every player's game**.
 
-Only share videos you have the right to share.
+The player who picks a video is the only one who needs the file. Everyone else gets it through the server automatically, and players who join later get it from the server's copy. Every copy is checked against the original before it plays.
 
-## Performance
+<details>
+<summary><b>⚙️ Server settings</b> (click to open)</summary>
 
-Video is only decoded while a screen is in view, and sound only while you're in hearing range. Hardware video decoding is used where available. At most 6 screens decode at once (nearest first, configurable), and everything is released a few seconds after you walk away. Client options are in `config/cushionscreen-client.json`.
+In `config/cushionscreen-server.json`:
 
-## Requirements
+- `shareVideos`: pass videos between players (default `true`)
+- `maxVideoSizeMB`: largest video the server passes along (default `4096`)
+- `cacheSizeMB`: disk space for shared videos; the oldest are removed first (default `16384`)
+- `maxConcurrentUploads`: players uploading at the same time (default `2`)
+
+</details>
+
+> ⚠️ Only share videos you have the right to share.
+
+---
+
+## ⚡ Performance
+
+Videos are only decoded while you can see the screen, and sound only plays while you're close enough to hear it. Hardware video decoding is used where your computer supports it, and everything is cleaned up a few seconds after you walk away.
+
+---
+
+## 📋 Requirements
 
 - Minecraft **26.3**
-- **Fabric** with Fabric API, or **NeoForge**
-- Windows (x64), macOS (Intel or Apple silicon) or Linux (x64)
+- **Fabric** + Fabric API, or **NeoForge**
+- Windows, macOS (Intel or Apple chip) or Linux
 
-The download is about 90 MB because it carries the FFmpeg video decoder for all four platforms.
+The file is about 90 MB because it includes the video decoder for every system.
 
-## Credits
+---
 
-Video decoding uses [FFmpeg](https://ffmpeg.org) (LGPL 2.1 or later) through [JavaCPP Presets](https://github.com/bytedeco/javacpp-presets) (Apache 2.0).
+<sub>Video decoding by [FFmpeg](https://ffmpeg.org) (LGPL 2.1+) through [JavaCPP Presets](https://github.com/bytedeco/javacpp-presets) (Apache 2.0).</sub>
