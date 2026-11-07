@@ -2,18 +2,16 @@
   "block.cushionscreen.cushion_screen": "Cushion Screen",
   "block.cushionscreen.screen_frame": "Padded Screen Frame",
   "itemGroup.cushionscreen": "Cushion Screen",
-
   "cushionscreen.screen.no_signal": "NO SIGNAL",
   "cushionscreen.screen.hint_select": "Right-click to choose a video",
   "cushionscreen.screen.missing": "Video not on this computer",
-  "cushionscreen.screen.hint_locate": "Right-click → Locate File to point to your copy",
+  "cushionscreen.screen.hint_locate": "Right-click → Locate File if you have a copy",
   "cushionscreen.screen.searching": "Looking for the video…",
   "cushionscreen.screen.loading": "Loading…",
   "cushionscreen.screen.failed": "Can't play this video",
   "cushionscreen.screen.no_decoder": "Video decoder unavailable",
   "cushionscreen.screen.no_decoder_hint": "See the game log for details",
   "cushionscreen.screen.incomplete": "INCOMPLETE",
-
   "cushionscreen.gui.title": "Cushion Screen",
   "cushionscreen.gui.blocks": "%s blocks",
   "cushionscreen.gui.select": "Select Video…",
@@ -34,13 +32,12 @@
   "cushionscreen.gui.resolution": "Resolution: %s",
   "cushionscreen.gui.no_audio": "no audio",
   "cushionscreen.gui.no_video": "No video loaded",
-  "cushionscreen.gui.no_video_hint": "Pick an MP4, WebM or MOV file from your computer. Other players need their own copy of the same file.",
+  "cushionscreen.gui.no_video_hint": "Pick an MP4, WebM or MOV file from your computer. Other players get it automatically through the server.",
   "cushionscreen.gui.analyzing": "Analyzing %s…",
   "cushionscreen.gui.checking": "Checking %s…",
   "cushionscreen.gui.loaded": "Loaded %s",
   "cushionscreen.gui.cannot_play": "Can't play: %s",
   "cushionscreen.gui.no_ffmpeg": "Video decoder unavailable: %s",
-
   "cushionscreen.gui.settings_title": "Screen Settings",
   "cushionscreen.gui.name": "Screen name",
   "cushionscreen.gui.owner": "Owner: %s",
@@ -53,11 +50,9 @@
   "cushionscreen.gui.rotation": "Picture rotation: %s°",
   "cushionscreen.gui.permission": "Control: %s",
   "cushionscreen.gui.settings_note": "Only the owner and operators can change these. \"Control\" decides who may load videos and use play, pause and seek.",
-
   "cushionscreen.permission.everyone": "Everyone",
   "cushionscreen.permission.owner": "Owner only",
   "cushionscreen.permission.operators": "Operators only",
-
   "cushionscreen.status.unknown": "Connecting…",
   "cushionscreen.status.off": "Screen is off",
   "cushionscreen.status.no_video": "No video",
@@ -69,11 +64,21 @@
   "cushionscreen.status.opening": "Opening…",
   "cushionscreen.status.playing": "Playing on this computer",
   "cushionscreen.status.failed": "Playback failed",
-
   "cushionscreen.locate.ok": "Found it — that's the right file",
   "cushionscreen.locate.wrong_size": "That's a different file (size doesn't match)",
   "cushionscreen.locate.wrong_file": "That's a different file (contents don't match)",
   "cushionscreen.locate.unreadable": "Couldn't read that file",
-
-  "cushionscreen.notice.no_permission": "You don't have permission to control this screen"
+  "cushionscreen.notice.no_permission": "You don't have permission to control this screen",
+  "cushionscreen.screen.hint_no_source": "Nobody online has it. The player who loaded it needs to be online",
+  "cushionscreen.screen.hint_share_disabled": "This server doesn't pass videos along. Right-click → Locate File",
+  "cushionscreen.screen.hint_too_large": "Too large for this server to pass along. Right-click → Locate File",
+  "cushionscreen.screen.hint_share_failed": "Getting it failed; trying again shortly",
+  "cushionscreen.screen.downloading": "Getting video… %s%%",
+  "cushionscreen.screen.download_size": "%s of %s MB",
+  "cushionscreen.screen.fetching": "Getting video… %s%%",
+  "cushionscreen.screen.fetching_from": "%s is sharing it with the server",
+  "cushionscreen.status.downloading": "Getting it from the server…",
+  "cushionscreen.share.sending": "Sharing %s with other players…",
+  "cushionscreen.share.sending_progress": "Sharing %s with other players… %s%%",
+  "cushionscreen.share.sent": "Shared %s with the server"
 }

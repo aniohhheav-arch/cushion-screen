@@ -32,6 +32,7 @@ public final class ScreenRenderState extends BlockEntityRenderState {
     public float osdAlpha;
     public String osdText = "";
     public float progress = -1;    // 0..1 for the overlay progress bar
+    public float fetchProgress = -1; // 0..1 while the video is being fetched from the server
     public boolean playing;
     public float timeSeconds;      // for idle animations
 }

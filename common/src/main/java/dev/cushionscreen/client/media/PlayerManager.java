@@ -34,7 +34,7 @@ public final class PlayerManager {
     private static final long GRACE_MS = 3000;
 
     /** What the screen shows on this client, for the renderer and the GUI. */
-    public enum Status { IDLE, OFF, LOADING_NATIVES, NO_FFMPEG, SEARCHING, MISSING_FILE, OPENING, PLAYING, FAILED }
+    public enum Status { IDLE, OFF, LOADING_NATIVES, NO_FFMPEG, SEARCHING, DOWNLOADING, MISSING_FILE, OPENING, PLAYING, FAILED }
 
     private static final class Entry {
         final ScreenPlayer player;
@@ -105,6 +105,26 @@ public final class PlayerManager {
         fullscreen = null;
     }
 
+    private static long lastShareCheck;
+
+    /**
+     * Once a second: for every screen in this dimension, tell the server we have its video, or ask for it. Fetching
+     * starts as soon as a screen gets a video, before anyone looks at it.
+     */
+    private static void checkSharing(long now) {
+        if (now - lastShareCheck < 1000) return;
+        lastShareCheck = now;
+        Set<String> seen = new HashSet<>();
+        for (ScreenData d : ClientScreens.all()) {
+            if (d.media().isEmpty() || !seen.add(d.media().get().fingerprint())) continue;
+            MediaInfo media = d.media().get();
+            Path[] found = new Path[1];
+            VideoLibrary.Lookup lookup = VideoLibrary.lookup(media, found);
+            if (lookup == VideoLibrary.Lookup.FOUND) ClientShare.reportHave(media.fingerprint());
+            else if (lookup == VideoLibrary.Lookup.MISSING) ClientShare.requestIfMissing(media);
+        }
+    }
+
     /** Called once per rendered frame on the render thread. */
     public static void renderFrame() {
         Minecraft mc = Minecraft.getInstance();
@@ -113,12 +133,13 @@ public final class PlayerManager {
             return;
         }
         long now = System.currentTimeMillis();
+        checkSharing(now);
         long clock = ClientClock.nowMs();
         Camera camera = mc.gameRenderer.mainCamera();
         Vec3 eye = camera.position();
         Frustum frustum = camera.getCullFrustum();
         ClientConfig cfg = ClientConfig.get();
-        float volumeScale = mc.options.getFinalSoundSourceVolume(SoundSource.RECORDS);
+        float volumeScale = mc.options.getFinalSoundSourceVolume(SoundSource.MASTER); // only Master: other sliders would silently mute screens
         boolean gamePaused = mc.isPaused();
 
         record Candidate(ScreenData data, ScreenShape shape, double distance, boolean visible, boolean audible) {}
@@ -171,7 +192,13 @@ public final class PlayerManager {
                 Path[] found = new Path[1];
                 VideoLibrary.Lookup lookup = VideoLibrary.lookup(media, found);
                 if (lookup != VideoLibrary.Lookup.FOUND) {
-                    statuses.put(d.id(), lookup == VideoLibrary.Lookup.SEARCHING ? Status.SEARCHING : Status.MISSING_FILE);
+                    ClientShare.Progress share = ClientShare.progress(media.fingerprint());
+                    boolean fetching = share != null && switch (share.state()) {
+                        case DOWNLOADING, UPLOADING, WAITING_FOR_UPLOAD -> true;
+                        default -> false;
+                    };
+                    statuses.put(d.id(), fetching ? Status.DOWNLOADING
+                        : lookup == VideoLibrary.Lookup.SEARCHING ? Status.SEARCHING : Status.MISSING_FILE);
                     continue;
                 }
                 e = new Entry(new ScreenPlayer(d.id(), media, found[0], target), media.fingerprint(), d.playback());

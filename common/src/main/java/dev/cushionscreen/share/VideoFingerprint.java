@@ -1,4 +1,4 @@
-package dev.cushionscreen.client.media;
+package dev.cushionscreen.share;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -39,6 +39,32 @@ public final class VideoFingerprint {
             }
         }
         return HexFormat.of().formatHex(sha.digest());
+    }
+
+    /** SHA-256 of the whole file, used to verify a shared copy byte for byte. */
+    public static String contentHash(Path file) throws IOException {
+        MessageDigest sha = sha256();
+        try (FileChannel ch = FileChannel.open(file, StandardOpenOption.READ)) {
+            ByteBuffer buf = ByteBuffer.allocateDirect(1 << 20);
+            while (ch.read(buf) >= 0) {
+                buf.flip();
+                sha.update(buf);
+                buf.clear();
+            }
+        }
+        return HexFormat.of().formatHex(sha.digest());
+    }
+
+    public static MessageDigest sha256() {
+        try {
+            return MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public static boolean isHex64(String s) {
+        return s != null && s.length() == 64 && s.chars().allMatch(c -> (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'));
     }
 
     private static void readInto(FileChannel ch, long offset, long length, ByteBuffer buf, MessageDigest sha) throws IOException {

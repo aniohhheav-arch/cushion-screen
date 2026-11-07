@@ -1,5 +1,6 @@
 package dev.cushionscreen.client.media;
 
+import dev.cushionscreen.share.VideoFingerprint;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -83,6 +84,13 @@ public final class VideoLibrary {
                 CushionScreen.LOG.warn("Could not save video library index", e);
             }
         });
+    }
+
+    /** Drops what this computer knows about a video (the file itself is left alone). */
+    public static void forget(String fingerprint) {
+        entries.remove(fingerprint);
+        searchedAt.remove(fingerprint);
+        save();
     }
 
     /** Records a file the player picked, after its fingerprint was computed. */

@@ -1,2 +1,2 @@
-[17:25:00] [CushionScreen FFmpeg loader/INFO]: FFmpeg 8.1.2 ready on linux-x86_64 (469 ms)
-[17:25:03] [CushionScreen video cs8300967430628062910.mp4/WARN]: Video decoding failed for cs8300967430628062910.mp4: open: Invalid data found when processing input
+[08:12:07] [CushionScreen FFmpeg loader/INFO]: FFmpeg 8.1.2 ready on linux-x86_64 (466 ms)
+[08:12:16] [CushionScreen video cs17464025647105997390.mp4/WARN]: Video decoding failed for cs17464025647105997390.mp4: open: Invalid data found when processing input

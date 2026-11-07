@@ -1,6 +1,7 @@
 package dev.cushionscreen.client;
 
 import dev.cushionscreen.client.gui.ScreenControlScreen;
+import dev.cushionscreen.client.media.ClientShare;
 import dev.cushionscreen.client.media.FFmpeg;
 import dev.cushionscreen.client.media.PlayerManager;
 import dev.cushionscreen.client.media.VideoLibrary;
@@ -42,6 +43,14 @@ public final class CushionScreenClient {
             ClientScreens.apply(sync);
         } else if (payload instanceof Payloads.ClockPong pong) {
             ClientClock.onPong(pong);
+        } else if (payload instanceof Payloads.DownloadPiece piece) {
+            ClientShare.handle(piece);
+        } else if (payload instanceof Payloads.ShareStatus status) {
+            ClientShare.handle(status);
+        } else if (payload instanceof Payloads.UploadRequest request) {
+            ClientShare.handle(request);
+        } else if (payload instanceof Payloads.UploadAck ack) {
+            ClientShare.handle(ack);
         } else if (payload instanceof Payloads.Notice notice) {
             Minecraft mc = Minecraft.getInstance();
             if (mc.player != null) mc.player.sendOverlayMessage(Component.translatable(notice.translationKey()));
@@ -72,6 +81,7 @@ public final class CushionScreenClient {
             return;
         }
         PlayerManager.closeAll();
+        ClientShare.reset();
         ClientScreens.clear();
         ClientClock.reset();
         lastLevel = null;

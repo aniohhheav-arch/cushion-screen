@@ -30,7 +30,9 @@ public final class ScreenPlayer implements AutoCloseable {
     private boolean videoActive = true;
     private int avgColor = 0xFF101418;
     private long firstFrameAt = -1;
-    private boolean audioBroken;
+    private long audioRetryAt;
+    private long lastAudioSeekAt;
+    private long lastAudioWarnAt;
     private boolean triedSoftwareFallback;
 
     public ScreenPlayer(UUID screenId, MediaInfo media, Path file, long startMs) {
@@ -42,7 +44,7 @@ public final class ScreenPlayer implements AutoCloseable {
         long start = Math.max(0, startMs);
         this.video = new VideoDecoder(file, start, cfg.maxVideoWidth, cfg.maxVideoHeight, cfg.hardwareDecoding);
         int channels = AudioOutput.supportsStereoSpatialization() ? 2 : 1;
-        this.audioDecoder = media.hasAudio() ? new AudioDecoder(file, start + 150, channels) : null;
+        this.audioDecoder = media.hasAudio() ? new AudioDecoder(file, start, channels) : null;
     }
 
     public UUID screenId() {
@@ -145,23 +147,27 @@ public final class ScreenPlayer implements AutoCloseable {
             if ((behind || backwards || jumpedAhead) && now - lastSeekAt > 400) seekVideo(targetMs + (behind ? 300 : 0), now);
         }
 
-        // ---- audio (never allowed to take rendering down with it)
-        if (audioDecoder != null && audioDecoder.isOpened() && !audioBroken) {
+        // ---- audio (never allowed to take rendering down with it; any failure is retried shortly)
+        if (audioDecoder != null && audioDecoder.isOpened() && now >= audioRetryAt) {
             try {
                 if (audio != null && !audio.isValid()) {
-                    audio.close(); // sound engine restarted: build a new source on the new device
+                    audio.close(); // sound engine restarted (device change, F3+T): make a new source
                     audio = null;
-                    audioDecoder.seek(targetMs + 150);
                 }
                 if (audio == null) audio = new AudioOutput(audioDecoder.sampleRate(), audioDecoder.channels());
-                boolean resync = audio.update(audioDecoder, targetMs, playing && gain > 0.0001f, audioPos, gain, range);
-                if (resync) {
-                    audioDecoder.seek(targetMs + 150);
-                    audio.flush();
+                AudioOutput.Result r = audio.update(audioDecoder, targetMs, playing && gain > 0.0001f, audioPos, gain, range);
+                if (r == AudioOutput.Result.RESEEK && now - lastAudioSeekAt > 750) {
+                    lastAudioSeekAt = now;
+                    audioDecoder.seek(targetMs);
                 }
             } catch (Throwable t) {
-                audioBroken = true;
-                CushionScreen.LOG.warn("Audio output failed for {}; continuing without sound", media.fileName(), t);
+                if (audio != null) audio.close();
+                audio = null;
+                audioRetryAt = now + 2000;
+                if (now - lastAudioWarnAt > 30_000) {
+                    lastAudioWarnAt = now;
+                    CushionScreen.LOG.warn("Sound for {} paused, retrying: {}", media.fileName(), t.toString());
+                }
             }
         }
     }
@@ -176,7 +182,8 @@ public final class ScreenPlayer implements AutoCloseable {
         seekVideo(targetMs, System.currentTimeMillis());
         presentedMs = -1;
         if (audioDecoder != null) {
-            audioDecoder.seek(targetMs + 150);
+            audioDecoder.seek(targetMs);
+            lastAudioSeekAt = System.currentTimeMillis();
             if (audio != null) audio.flush();
         }
     }

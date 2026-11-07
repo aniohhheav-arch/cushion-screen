@@ -5,7 +5,12 @@
   "name": "Cushion Screen in-game tests",
   "environment": "client",
   "entrypoints": {
-    "fabric-client-gametest": ["dev.cushionscreen.gametest.CushionScreenClientGameTest"]
+    "fabric-client-gametest": [
+      "dev.cushionscreen.gametest.CushionScreenClientGameTest",
+      "dev.cushionscreen.gametest.VideoSharingGameTest"
+    ]
   },
-  "depends": { "cushionscreen": "*" }
+  "depends": {
+    "cushionscreen": "*"
+  }
 }

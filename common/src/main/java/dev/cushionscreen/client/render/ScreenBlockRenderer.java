@@ -7,7 +7,9 @@ import dev.cushionscreen.block.CushionScreenBlockEntity;
 import dev.cushionscreen.client.ClientClock;
 import dev.cushionscreen.client.ClientConfig;
 import dev.cushionscreen.client.ClientScreens;
+import dev.cushionscreen.client.media.ClientShare;
 import dev.cushionscreen.client.media.PlayerManager;
+import dev.cushionscreen.network.Payloads;
 import dev.cushionscreen.client.media.ScreenPlayer;
 import dev.cushionscreen.client.media.VideoTexture;
 import dev.cushionscreen.screen.MediaInfo;
@@ -125,6 +127,7 @@ public final class ScreenBlockRenderer implements BlockEntityRenderer<CushionScr
             s.glowColor = player.averageColor();
         }
 
+        s.fetchProgress = -1;
         s.title = d.displayName();
         s.subtitle = "";
         s.hint = "";
@@ -138,7 +141,29 @@ public final class ScreenBlockRenderer implements BlockEntityRenderer<CushionScr
             case MISSING_FILE -> {
                 title = Component.translatable("cushionscreen.screen.missing");
                 sub = Component.literal(media == null ? "" : media.fileName());
-                hint = Component.translatable("cushionscreen.screen.hint_locate");
+                ClientShare.Progress share = media == null ? null : ClientShare.progress(media.fingerprint());
+                String why = share == null ? "hint_locate" : switch (share.state()) {
+                    case NO_SOURCE -> "hint_no_source";
+                    case DISABLED -> "hint_share_disabled";
+                    case TOO_LARGE -> "hint_too_large";
+                    case FAILED -> "hint_share_failed";
+                    default -> "hint_locate";
+                };
+                hint = Component.translatable("cushionscreen.screen." + why);
+            }
+            case DOWNLOADING -> {
+                ClientShare.Progress share = media == null ? null : ClientShare.progress(media.fingerprint());
+                int percent = share == null ? 0 : Math.round(share.fraction() * 100);
+                if (share != null && share.state() == Payloads.ShareState.DOWNLOADING) {
+                    title = Component.translatable("cushionscreen.screen.downloading", percent);
+                    hint = Component.translatable("cushionscreen.screen.download_size", share.done() >> 20, share.total() >> 20);
+                } else {
+                    String from = share == null || share.from().isEmpty() ? "?" : share.from();
+                    title = Component.translatable("cushionscreen.screen.fetching", percent);
+                    hint = Component.translatable("cushionscreen.screen.fetching_from", from);
+                }
+                sub = Component.literal(media == null ? "" : media.fileName());
+                s.fetchProgress = share == null ? 0f : share.fraction();
             }
             case SEARCHING -> title = Component.translatable("cushionscreen.screen.searching");
             case NO_FFMPEG -> {
@@ -286,6 +311,11 @@ public final class ScreenBlockRenderer implements BlockEntityRenderer<CushionScr
         if (!s.title.isEmpty()) text(out, poseStack, s.title, W / 2, H / 2 + titleSize * 0.2f, titleSize, W * 0.9f, LAYER * 4, titleColor);
         if (!s.subtitle.isEmpty()) text(out, poseStack, s.subtitle, W / 2, H / 2 - titleSize * 0.9f, titleSize * 0.5f, W * 0.9f, LAYER * 4, subColor);
         if (!s.hint.isEmpty()) text(out, poseStack, s.hint, W / 2, H * 0.12f, titleSize * 0.38f, W * 0.9f, LAYER * 4, subColor);
+        if (s.fetchProgress >= 0) {
+            float bw = W * 0.6f, bh = Math.max(0.03f, H * 0.025f), bx = (W - bw) / 2, by = H * 0.24f;
+            quad(out, poseStack, WHITE, bx, by, bx + bw, by + bh, LAYER * 4, argb(0.25f, 1, 1, 1));
+            quad(out, poseStack, WHITE, bx, by, bx + bw * s.fetchProgress, by + bh, LAYER * 5, argb(0.95f, 0.94f, 0.35f, 0.29f));
+        }
     }
 
     private static void drawSpinner(ScreenRenderState s, PoseStack poseStack, SubmitNodeCollector out, float cx, float cy, float u) {

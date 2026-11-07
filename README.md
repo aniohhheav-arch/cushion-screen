@@ -35,19 +35,36 @@ volume × your volume × the game's *Master* and *Jukebox/Note Blocks* sliders.
 
 ## Multiplayer: how videos are shared
 
-Video files **never** travel over the network, and neither do file paths.
+**Only the player who loads a video needs the file.** Everyone else gets it through the server automatically:
 
-- When you load a video, your client sends the server a small description: file name (without folders), size,
-  duration, resolution, and a **fingerprint** (SHA-256 of the size plus three 4 MB samples of the file).
-- The server keeps one **shared timeline** per screen (playing/paused, position, loop) on its own media clock.
-  Every client syncs to that clock NTP-style and decodes the video locally, so everyone sees the same moment.
-- Other players need **their own copy of the same file**. Their screen shows *Video not on this computer*
-  until they either:
-  - right-click → **Locate File…** and pick their copy (accepted only if the fingerprint matches), or
-  - drop the file into `.minecraft/cushionscreen/videos/`, where it's found automatically.
+1. When your game sees a screen with a video you don't have, it asks the server for it, with no clicks needed.
+2. If the server doesn't have a copy yet, it asks an online player who has the video to share it. That player's
+   game uploads it in the background ("Sharing … with other players… 50%" appears above their hotbar).
+3. The server keeps a copy in `<world>/cushionscreen/media/` and streams it to everyone who needs it. Players
+   who join later get it straight from the server, even if the original player has left.
+4. Your screen shows **Getting video… 37%** with a progress bar, then starts playing in sync with everyone else.
 
-  A copy that was renamed or moved still matches. A re-encoded or edited file does not.
-- Every request is validated on the server: reach (64 blocks), permissions, sane values, and a rate limit.
+Every copy is checked against the full SHA-256 of the original before it's used, both on the server and on
+your computer, so a damaged or swapped file is thrown away. Downloaded videos are kept in
+`.minecraft/cushionscreen/downloads/` and reused next time.
+
+You can still use your own copy instead: right-click → **Locate File…**, or drop it into
+`.minecraft/cushionscreen/videos/`. A renamed or moved copy still matches; a re-encoded one doesn't.
+
+Playback itself stays synchronized as before: the server keeps one shared timeline per screen on its own media
+clock, every client syncs to that clock NTP-style and decodes the video locally. Every request is validated on the
+server (reach, permissions, sane values, rate limits), and uploads are only accepted when the server asked for them.
+
+### Server settings
+
+`config/cushionscreen-server.json` (created on first start):
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `shareVideos` | `true` | Pass videos between players through the server |
+| `maxVideoSizeMB` | `4096` | Largest video the server will pass along |
+| `cacheSizeMB` | `16384` | Disk space for shared videos; least recently used are removed first |
+| `maxConcurrentUploads` | `2` | Players uploading to the server at the same time |
 
 ## How it works
 
@@ -55,7 +72,7 @@ Video files **never** travel over the network, and neither do file paths.
 |---|---|
 | Decoding | FFmpeg 8.1 through JavaCPP (bundled natives: Windows x64, Linux x64, macOS x64/arm64). Separate demuxers for video and audio. Multithreaded decode, with hardware decoding (D3D11VA/DXVA2, VideoToolbox, VA-API/CUDA) when available and automatic software fallback. |
 | Picture | One persistent GPU texture per playing screen, updated in place with `CommandEncoder.writeToTexture` (works on both OpenGL and Vulkan backends). Videos larger than 1920×1080 are scaled down to that size. |
-| Sound | One OpenAL source per screen at the screen's centre, attenuated over a distance that grows with the screen. Stereo is kept where OpenAL Soft can spatialise it. The audio clock (`AL_SAMPLE_OFFSET`) is held to the shared timeline with tiny pitch corrections, and resyncs on large drift. Fullscreen switches to direct stereo. |
+| Sound | One OpenAL source per screen at the screen's centre, attenuated over a distance that grows with the screen. Stereo is kept where OpenAL Soft can spatialise it. Playback starts by trimming the decoded audio to the exact sample that is due, so it begins in step however long decoding took. The audio clock counts played samples (`AL_SAMPLE_OFFSET`) and is held to the shared timeline with small pitch corrections (at most ±5 %). If sound can't start (for example, every OpenAL voice is busy), it retries every 2 seconds. Volume follows the game's Master slider. Fullscreen switches to direct stereo. |
 | Performance | Video is decoded only while the screen is in view, and audio only within hearing range. Players are disposed 3 s after they are no longer needed, and at most 6 decode at once (nearest first). Late frames are skipped before colour conversion, so low frame rates don't make the picture lag. |
 | Polish | CRT-style power on/off, a fade-in on the first frame, a loading spinner, a NO SIGNAL screen, an on-screen display after every change, a playing indicator, a soft glow in the picture's average colour, real block light (level 8) while showing a video, and animated menus. |
 
@@ -83,16 +100,18 @@ for four platforms. For a slim single-platform build:
 ./gradlew :fabric:test
 ```
 
-46 unit tests: real decoding of MP4/WebM/MOV, frame-accurate seeking, sample-accurate audio seeks, keeping up at
-5 FPS, timeline maths, wire formats, input validation, and screen geometry in all six orientations.
+51 unit tests: real decoding of MP4/WebM/MOV, frame-accurate seeking, sample-accurate audio seeks, keeping up at
+5 FPS, real-time audio/video sync on OpenAL's silent device (start-up, catch-up, all voices busy), timeline maths,
+wire formats and packet size limits, input validation, and screen geometry in all six orientations.
 
 ```bash
 ./gradlew :fabric:runClientGameTest
 ```
 
 Launches the real game client. It builds a 16×9 wall, loads a test video over the network path, then seeks,
-plays, reaches the end, opens the menu and fullscreen, powers the screen off and splits the wall. Each step is
-checked with screenshots. Headless, it runs under Xvfb with Mesa:
+plays, reaches the end, opens the menu and fullscreen, powers the screen off and splits the wall. A second test shares a 6 MB video:
+upload to the server, then download back after the local copy is deleted, both verified byte for byte. Each step
+is checked with screenshots. Headless, it runs under Xvfb with Mesa:
 `DISPLAY=:N LIBGL_ALWAYS_SOFTWARE=1 SDL_VIDEO_FORCE_EGL=1`.
 
 ### Layout

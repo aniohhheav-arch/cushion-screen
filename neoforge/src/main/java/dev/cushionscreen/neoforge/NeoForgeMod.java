@@ -20,7 +20,11 @@ public final class NeoForgeMod {
         modBus.addListener(NeoForgeMod::registerPayloads);
 
         NeoForge.EVENT_BUS.addListener((ServerStartingEvent e) -> ServerEvents.serverStarting(e.getServer()));
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.server.ServerStoppingEvent e) -> ServerEvents.serverStopping(e.getServer()));
         NeoForge.EVENT_BUS.addListener((ServerTickEvent.Post e) -> ServerEvents.serverTickEnd(e.getServer()));
+        NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedOutEvent e) -> {
+            if (e.getEntity() instanceof ServerPlayer player) ServerEvents.playerLeft(player);
+        });
         NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent e) -> entered(e));
         NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerRespawnEvent e) -> entered(e));
         NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerChangedDimensionEvent e) -> entered(e));

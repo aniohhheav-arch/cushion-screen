@@ -36,6 +36,7 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    environment 'ALSOFT_DRIVERS', 'null' // OpenAL Soft's silent device: real-time playback without speakers
     testLogging { events 'passed', 'failed', 'skipped'; exceptionFormat 'full' }
 }
 

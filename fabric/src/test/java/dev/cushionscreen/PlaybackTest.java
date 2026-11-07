@@ -76,7 +76,7 @@ class PlaybackTest {
 
     @Test
     void screenDataRoundTripsOverTheWire() {
-        MediaInfo media = new MediaInfo("a".repeat(64), "movie night.mp4", 123_456_789L, 5_400_000L, 1920, 1080, 23.976, true, "h264");
+        MediaInfo media = new MediaInfo("a".repeat(64), "movie night.mp4", 123_456_789L, 5_400_000L, 1920, 1080, 23.976, true, "h264", "");
         ScreenData d = ScreenData.create(UUID.randomUUID(), UUID.randomUUID(), "Steve")
             .withSettings("Cinema", ScreenPermission.OWNER, true, 0.7f, true, 0.5f, 1)
             .withMedia(Optional.of(media), Playback.STOPPED.play(42, media.durationMs()));
@@ -86,15 +86,31 @@ class PlaybackTest {
     }
 
     @Test
+    void transferPiecesFitMinecraftsPacketLimits() {
+        String fp = "0123456789abcdef".repeat(4);
+        io.netty.buffer.ByteBuf up = io.netty.buffer.Unpooled.buffer();
+        dev.cushionscreen.network.Payloads.UploadPiece.CODEC.encode(
+            new net.minecraft.network.RegistryFriendlyByteBuf(up, net.minecraft.core.RegistryAccess.EMPTY),
+            new dev.cushionscreen.network.Payloads.UploadPiece(fp, Long.MAX_VALUE / 2, new byte[dev.cushionscreen.network.Payloads.UPLOAD_PIECE]));
+        // the channel id travels with it; serverbound custom payloads may be at most 32767 bytes
+        assertTrue(up.readableBytes() + 64 < 32767, "upload piece is " + up.readableBytes() + " bytes");
+        io.netty.buffer.ByteBuf down = io.netty.buffer.Unpooled.buffer();
+        dev.cushionscreen.network.Payloads.DownloadPiece.CODEC.encode(
+            new net.minecraft.network.RegistryFriendlyByteBuf(down, net.minecraft.core.RegistryAccess.EMPTY),
+            new dev.cushionscreen.network.Payloads.DownloadPiece(fp, Long.MAX_VALUE / 2, Long.MAX_VALUE / 2, new byte[dev.cushionscreen.network.Payloads.DOWNLOAD_PIECE]));
+        assertTrue(down.readableBytes() + 64 < 1048576, "download piece is " + down.readableBytes() + " bytes");
+    }
+
+    @Test
     void mediaValidationRejectsHostileInput() {
         String fp = "0123456789abcdef".repeat(4);
-        assertTrue(new MediaInfo(fp, "a.mp4", 10, 1000, 640, 360, 30, true, "h264").isValid());
-        assertFalse(new MediaInfo(fp, "../../etc/passwd", 10, 1000, 640, 360, 30, true, "h264").isValid());
-        assertFalse(new MediaInfo(fp, "C:\\videos\\a.mp4", 10, 1000, 640, 360, 30, true, "h264").isValid());
-        assertFalse(new MediaInfo("XYZ" + fp.substring(3), "a.mp4", 10, 1000, 640, 360, 30, true, "h264").isValid());
-        assertFalse(new MediaInfo(fp, "a.mp4", 10, 1000, 0, 360, 30, true, "h264").isValid());
-        assertFalse(new MediaInfo(fp, "a.mp4", 10, -5, 640, 360, 30, true, "h264").isValid());
-        assertFalse(new MediaInfo(fp, "\u00a7kobfuscated.mp4", 10, 1000, 640, 360, 30, true, "h264").isValid());
-        assertFalse(new MediaInfo(fp, "line\nbreak.mp4", 10, 1000, 640, 360, 30, true, "h264").isValid());
+        assertTrue(new MediaInfo(fp, "a.mp4", 10, 1000, 640, 360, 30, true, "h264", "").isValid());
+        assertFalse(new MediaInfo(fp, "../../etc/passwd", 10, 1000, 640, 360, 30, true, "h264", "").isValid());
+        assertFalse(new MediaInfo(fp, "C:\\videos\\a.mp4", 10, 1000, 640, 360, 30, true, "h264", "").isValid());
+        assertFalse(new MediaInfo("XYZ" + fp.substring(3), "a.mp4", 10, 1000, 640, 360, 30, true, "h264", "").isValid());
+        assertFalse(new MediaInfo(fp, "a.mp4", 10, 1000, 0, 360, 30, true, "h264", "").isValid());
+        assertFalse(new MediaInfo(fp, "a.mp4", 10, -5, 640, 360, 30, true, "h264", "").isValid());
+        assertFalse(new MediaInfo(fp, "\u00a7kobfuscated.mp4", 10, 1000, 640, 360, 30, true, "h264", "").isValid());
+        assertFalse(new MediaInfo(fp, "line\nbreak.mp4", 10, 1000, 640, 360, 30, true, "h264", "").isValid());
     }
 }

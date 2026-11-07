@@ -10,10 +10,22 @@ public final class ServerEvents {
 
     public static void serverStarting(MinecraftServer server) {
         MediaClock.reset();
+        MediaShare.start(server);
+    }
+
+    public static void serverStopping(MinecraftServer server) {
+        MediaShare.stop();
+    }
+
+    public static void playerLeft(ServerPlayer player) {
+        MediaShare s = MediaShare.get();
+        if (s != null) s.playerLeft(player.getUUID());
     }
 
     public static void serverTickEnd(MinecraftServer server) {
         MediaClock.tick();
+        MediaShare share = MediaShare.get();
+        if (share != null) share.tick();
         for (ServerLevel level : server.getAllLevels()) {
             ScreenRegistry.get(level).tick();
         }

@@ -1,5 +1,6 @@
 package dev.cushionscreen.client.media;
 
+import dev.cushionscreen.share.VideoFingerprint;
 import dev.cushionscreen.screen.MediaInfo;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -57,7 +58,8 @@ public final class MediaProbe {
             if (name.length() > MediaInfo.MAX_NAME) name = name.substring(name.length() - MediaInfo.MAX_NAME);
             String codec = avcodec.avcodec_get_name(par.codec_id()).getString();
             if (codec.length() > 32) codec = codec.substring(0, 32);
-            return new MediaInfo(VideoFingerprint.of(file), name, Files.size(file), durationMs, width, height, fps, audio, codec);
+            return new MediaInfo(VideoFingerprint.of(file), name, Files.size(file), durationMs, width, height, fps, audio, codec,
+                VideoFingerprint.contentHash(file));
         } finally {
             avformat.avformat_close_input(fmt);
         }

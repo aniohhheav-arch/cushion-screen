@@ -113,7 +113,8 @@ public final class ScreenControlScreen extends Screen {
         boolean has = d != null && d.media().isPresent();
         PlayerManager.Status status = screenId == null ? PlayerManager.Status.IDLE : PlayerManager.status(screenId);
         selectButton.active = d != null && !busy && !FileDialogs.isOpen();
-        locateButton.visible = has && (status == PlayerManager.Status.MISSING_FILE || status == PlayerManager.Status.SEARCHING);
+        locateButton.visible = has && (status == PlayerManager.Status.MISSING_FILE || status == PlayerManager.Status.SEARCHING
+            || status == PlayerManager.Status.DOWNLOADING);
         locateButton.active = locateButton.visible && !busy && !FileDialogs.isOpen();
         ejectButton.active = has;
         playButton.active = has;
@@ -292,6 +293,7 @@ public final class ScreenControlScreen extends Screen {
         PlayerManager.Status s = screenId == null ? PlayerManager.Status.IDLE : PlayerManager.status(screenId);
         return switch (s) {
             case PLAYING -> 0xFF7BE08A;
+            case DOWNLOADING -> 0xFF8CC8FF;
             case MISSING_FILE, FAILED, NO_FFMPEG -> 0xFFFF8070;
             default -> 0xFFFFD27A;
         };

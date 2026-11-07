@@ -19,7 +19,9 @@ public record MediaInfo(
     int height,
     double frameRate,
     boolean hasAudio,
-    String codec
+    String codec,
+    /** SHA-256 of the whole file (empty if unknown); a shared copy must match it exactly. */
+    String contentHash
 ) {
     public static final int MAX_NAME = 128;
     public static final int FINGERPRINT_LENGTH = 64;
@@ -33,7 +35,8 @@ public record MediaInfo(
         Codec.INT.fieldOf("height").forGetter(MediaInfo::height),
         Codec.DOUBLE.optionalFieldOf("fps", 0.0).forGetter(MediaInfo::frameRate),
         Codec.BOOL.optionalFieldOf("audio", true).forGetter(MediaInfo::hasAudio),
-        Codec.STRING.optionalFieldOf("codec", "").forGetter(MediaInfo::codec)
+        Codec.STRING.optionalFieldOf("codec", "").forGetter(MediaInfo::codec),
+        Codec.STRING.optionalFieldOf("content_hash", "").forGetter(MediaInfo::contentHash)
     ).apply(i, MediaInfo::new));
 
     public static final StreamCodec<ByteBuf, MediaInfo> STREAM_CODEC = StreamCodec.of(
@@ -48,11 +51,12 @@ public record MediaInfo(
             b.writeDouble(m.frameRate);
             b.writeBoolean(m.hasAudio);
             b.writeUtf(m.codec, 32);
+            b.writeUtf(m.contentHash, FINGERPRINT_LENGTH);
         },
         buf -> {
             FriendlyByteBuf b = new FriendlyByteBuf(buf);
             return new MediaInfo(b.readUtf(FINGERPRINT_LENGTH), b.readUtf(MAX_NAME), b.readVarLong(), b.readVarLong(),
-                b.readVarInt(), b.readVarInt(), b.readDouble(), b.readBoolean(), b.readUtf(32));
+                b.readVarInt(), b.readVarInt(), b.readDouble(), b.readBoolean(), b.readUtf(32), b.readUtf(FINGERPRINT_LENGTH));
         });
 
     /** Server-side validation of data that came from a client. */
@@ -64,7 +68,8 @@ public record MediaInfo(
             && fileName.chars().noneMatch(c -> c < 0x20 || c == 0x7f || c == '\u00a7')
             && sizeBytes > 0 && durationMs >= 0 && durationMs < 1000L * 60 * 60 * 48
             && width > 0 && height > 0 && width <= 16384 && height <= 16384
-            && frameRate >= 0 && frameRate < 1000 && codec.length() <= 32;
+            && frameRate >= 0 && frameRate < 1000 && codec.length() <= 32
+            && (contentHash.isEmpty() || dev.cushionscreen.share.VideoFingerprint.isHex64(contentHash));
     }
 
     public String resolutionLabel() {

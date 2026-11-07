@@ -10,7 +10,7 @@ import dev.cushionscreen.client.media.AudioDecoder;
 import dev.cushionscreen.client.media.FFmpeg;
 import dev.cushionscreen.client.media.MediaProbe;
 import dev.cushionscreen.client.media.VideoDecoder;
-import dev.cushionscreen.client.media.VideoFingerprint;
+import dev.cushionscreen.share.VideoFingerprint;
 import dev.cushionscreen.screen.MediaInfo;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;

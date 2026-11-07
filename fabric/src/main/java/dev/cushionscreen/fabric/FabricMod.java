@@ -14,7 +14,9 @@ public final class FabricMod implements ModInitializer {
     public void onInitialize() {
         CushionScreen.init();
         ServerLifecycleEvents.SERVER_STARTING.register(ServerEvents::serverStarting);
+        ServerLifecycleEvents.SERVER_STOPPING.register(ServerEvents::serverStopping);
         ServerTickEvents.END_SERVER_TICK.register(ServerEvents::serverTickEnd);
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> server.execute(() -> ServerEvents.playerLeft(handler.getPlayer())));
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ServerEvents.playerEnteredLevel(handler.getPlayer()));
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> ServerEvents.playerEnteredLevel(newPlayer));
         ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register((player, from, to) -> ServerEvents.playerEnteredLevel(player));

@@ -344,6 +344,8 @@ public final class ScreenRegistry extends SavedData {
         Playback fresh = new Playback(Playback.Status.PAUSED, 0, clock, d.playback().loop());
         if (msg.autoplay()) fresh = fresh.play(clock, media.durationMs());
         put(d.withMedia(Optional.of(media), fresh));
+        MediaShare share = MediaShare.get();
+        if (share != null) share.noteLoaded(player, media);
         updateLighting(d.id(), null);
         flush();
     }

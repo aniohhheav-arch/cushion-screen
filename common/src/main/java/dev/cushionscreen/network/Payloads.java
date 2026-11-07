@@ -134,4 +134,116 @@ public final class Payloads {
             return TYPE;
         }
     }
+
+    // ---------------------------------------------------------------- video sharing (fingerprint = MediaInfo.fingerprint)
+
+    /** Uploads go client to server in pieces that fit Minecraft's 32 KiB serverbound limit. */
+    public static final int UPLOAD_PIECE = 30_000;
+    /** Downloads go server to client in pieces well under the 1 MiB clientbound limit. */
+    public static final int DOWNLOAD_PIECE = 256 * 1024;
+
+    private static final StreamCodec<io.netty.buffer.ByteBuf, String> FP = ByteBufCodecs.stringUtf8(64);
+
+    /** C2S: this client lacks the file and wants the server to send it. */
+    public record RequestMedia(String fingerprint) implements CustomPacketPayload {
+        public static final Type<RequestMedia> TYPE = typeOf("request_media");
+        public static final StreamCodec<RegistryFriendlyByteBuf, RequestMedia> CODEC =
+            StreamCodec.composite(FP, RequestMedia::fingerprint, RequestMedia::new);
+
+        @Override
+        public Type<RequestMedia> type() {
+            return TYPE;
+        }
+    }
+
+    /** C2S: this client has the file locally and could upload it. */
+    public record HaveMedia(String fingerprint) implements CustomPacketPayload {
+        public static final Type<HaveMedia> TYPE = typeOf("have_media");
+        public static final StreamCodec<RegistryFriendlyByteBuf, HaveMedia> CODEC =
+            StreamCodec.composite(FP, HaveMedia::fingerprint, HaveMedia::new);
+
+        @Override
+        public Type<HaveMedia> type() {
+            return TYPE;
+        }
+    }
+
+    /** S2C: please upload this file (starting at {@code offset}). */
+    public record UploadRequest(String fingerprint, long offset) implements CustomPacketPayload {
+        public static final Type<UploadRequest> TYPE = typeOf("upload_request");
+        public static final StreamCodec<RegistryFriendlyByteBuf, UploadRequest> CODEC =
+            StreamCodec.composite(FP, UploadRequest::fingerprint, ByteBufCodecs.VAR_LONG, UploadRequest::offset, UploadRequest::new);
+
+        @Override
+        public Type<UploadRequest> type() {
+            return TYPE;
+        }
+    }
+
+    /** C2S: one piece of an upload. */
+    public record UploadPiece(String fingerprint, long offset, byte[] data) implements CustomPacketPayload {
+        public static final Type<UploadPiece> TYPE = typeOf("upload_piece");
+        public static final StreamCodec<RegistryFriendlyByteBuf, UploadPiece> CODEC = StreamCodec.composite(
+            FP, UploadPiece::fingerprint, ByteBufCodecs.VAR_LONG, UploadPiece::offset,
+            ByteBufCodecs.byteArray(UPLOAD_PIECE), UploadPiece::data, UploadPiece::new);
+
+        @Override
+        public Type<UploadPiece> type() {
+            return TYPE;
+        }
+    }
+
+    /** S2C: bytes of an upload the server has stored (flow control); {@code received < 0} cancels the upload. */
+    public record UploadAck(String fingerprint, long received) implements CustomPacketPayload {
+        public static final Type<UploadAck> TYPE = typeOf("upload_ack");
+        public static final StreamCodec<RegistryFriendlyByteBuf, UploadAck> CODEC =
+            StreamCodec.composite(FP, UploadAck::fingerprint, ByteBufCodecs.VAR_LONG, UploadAck::received, UploadAck::new);
+
+        @Override
+        public Type<UploadAck> type() {
+            return TYPE;
+        }
+    }
+
+    /** S2C: one piece of a download. */
+    public record DownloadPiece(String fingerprint, long offset, long total, byte[] data) implements CustomPacketPayload {
+        public static final Type<DownloadPiece> TYPE = typeOf("download_piece");
+        public static final StreamCodec<RegistryFriendlyByteBuf, DownloadPiece> CODEC = StreamCodec.composite(
+            FP, DownloadPiece::fingerprint, ByteBufCodecs.VAR_LONG, DownloadPiece::offset, ByteBufCodecs.VAR_LONG, DownloadPiece::total,
+            ByteBufCodecs.byteArray(DOWNLOAD_PIECE), DownloadPiece::data, DownloadPiece::new);
+
+        @Override
+        public Type<DownloadPiece> type() {
+            return TYPE;
+        }
+    }
+
+    /** C2S: bytes of a download this client has written (flow control). */
+    public record DownloadAck(String fingerprint, long received) implements CustomPacketPayload {
+        public static final Type<DownloadAck> TYPE = typeOf("download_ack");
+        public static final StreamCodec<RegistryFriendlyByteBuf, DownloadAck> CODEC =
+            StreamCodec.composite(FP, DownloadAck::fingerprint, ByteBufCodecs.VAR_LONG, DownloadAck::received, DownloadAck::new);
+
+        @Override
+        public Type<DownloadAck> type() {
+            return TYPE;
+        }
+    }
+
+    public enum ShareState { WAITING_FOR_UPLOAD, UPLOADING, DOWNLOADING, NO_SOURCE, TOO_LARGE, DISABLED, FAILED }
+
+    /** S2C: how getting a shared video is going, for the screen and the menu. {@code from} names the uploader. */
+    public record ShareStatus(String fingerprint, ShareState state, long done, long total, String from) implements CustomPacketPayload {
+        public static final Type<ShareStatus> TYPE = typeOf("share_status");
+        public static final StreamCodec<RegistryFriendlyByteBuf, ShareStatus> CODEC = StreamCodec.composite(
+            FP, ShareStatus::fingerprint,
+            ByteBufCodecs.idMapper(i -> ShareState.values()[Math.floorMod(i, ShareState.values().length)], ShareState::ordinal), ShareStatus::state,
+            ByteBufCodecs.VAR_LONG, ShareStatus::done, ByteBufCodecs.VAR_LONG, ShareStatus::total,
+            ByteBufCodecs.stringUtf8(64), ShareStatus::from, ShareStatus::new);
+
+        @Override
+        public Type<ShareStatus> type() {
+            return TYPE;
+        }
+    }
 }
