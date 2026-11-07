@@ -73,7 +73,7 @@ public final class ScreenControlScreen extends Screen {
         ejectButton = addRenderableWidget(Button.builder(Component.translatable("cushionscreen.gui.eject"), b -> ScreenActions.act(pos, Payloads.Action.EJECT, 0))
             .bounds(x + 240, top + 104, w - 240, 20).build());
 
-        progressBar = addRenderableWidget(new ProgressBar(x, top + 132, w, 10, this::currentProgress, this::seekTo));
+        progressBar = addRenderableWidget(new ProgressBar(x, top + 128, w, 16, this::currentProgress, this::seekTo));
 
         int bw = (w - 12) / 4;
         stopButton = addRenderableWidget(Button.builder(Component.literal("■ ").append(Component.translatable("cushionscreen.gui.stop")),
@@ -282,7 +282,7 @@ public final class ScreenControlScreen extends Screen {
         long now = d == null ? 0 : d.playback().positionAt(ClientClock.nowMs(), dur);
         if (progressBar.isDragging()) now = Math.round(progressBar.shownValue() * dur);
         String time = ScreenBlockRenderer.formatTime(now) + " / " + ScreenBlockRenderer.formatTime(dur);
-        g.text(font, Component.literal(time), x + 12, y + 146, 0xFFB8C0CE);
+        g.text(font, Component.literal(time), x + 12, y + 147, 0xFFB8C0CE);
 
         if (!message.getString().isEmpty()) {
             g.text(font, message, x + PANEL_W - 12 - font.width(message), y + 146, 0xFFFFD27A);

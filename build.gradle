@@ -26,3 +26,49 @@ subprojects {
         options.release = 25
     }
 }
+
+// FFmpeg's bundles carry pieces the mod never loads (filters, devices, post-processing, the ffmpeg/ffprobe
+// programs). Removing them from the nested native jars saves ~14 MB across the four platforms.
+ext.stripUnusedFfmpeg = { File modJar ->
+    def unused = ~/^(lib)?(jni)?(avfilter|avdevice|postproc)|^(ffmpeg|ffprobe|ffplay)(\.exe)?$/
+    def filterNested = { byte[] bytes ->
+        def out = new ByteArrayOutputStream()
+        new java.util.zip.ZipInputStream(new ByteArrayInputStream(bytes)).withCloseable { zin ->
+            new java.util.zip.ZipOutputStream(out).withCloseable { zout ->
+                def e
+                while ((e = zin.nextEntry) != null) {
+                    def name = e.name.tokenize('/').with { it.isEmpty() ? '' : it.last() }
+                    if (!e.directory && !name.endsWith('.class') && name =~ unused) continue
+                    def ne = new java.util.zip.ZipEntry(e.name)
+                    ne.time = e.time
+                    zout.putNextEntry(ne)
+                    zout.write(zin.readAllBytes())
+                    zout.closeEntry()
+                }
+            }
+        }
+        out.toByteArray()
+    }
+    def tmp = new File(modJar.parentFile, modJar.name + '.tmp')
+    new java.util.zip.ZipFile(modJar).withCloseable { outer ->
+        new java.util.zip.ZipOutputStream(new FileOutputStream(tmp)).withCloseable { zos ->
+            outer.entries().each { e ->
+                byte[] data = outer.getInputStream(e).bytes
+                if (e.name ==~ /META-INF\/(jars|jarjar)\/ffmpeg-[^\/]*-(windows|linux|macosx)-[^\/]*\.jar/) data = filterNested(data)
+                def ne = new java.util.zip.ZipEntry(e.name)
+                ne.time = e.time
+                zos.putNextEntry(ne)
+                zos.write(data)
+                zos.closeEntry()
+            }
+        }
+    }
+    modJar.delete()
+    tmp.renameTo(modJar)
+}
+
+subprojects {
+    afterEvaluate {
+        tasks.named('jar') { t -> t.doLast { rootProject.ext.stripUnusedFfmpeg(t.archiveFile.get().asFile) } }
+    }
+}

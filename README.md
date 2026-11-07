@@ -87,7 +87,7 @@ Requires JDK 25.
 ./gradlew :fabric:build :neoforge:build
 ```
 
-Jars are written to `fabric/build/libs/` and `neoforge/build/libs/`. About 100 MB each, almost all of it FFmpeg
+Jars are written to `fabric/build/libs/` and `neoforge/build/libs/`. About 90 MB each, almost all of it FFmpeg
 for four platforms. For a slim single-platform build:
 
 ```bash

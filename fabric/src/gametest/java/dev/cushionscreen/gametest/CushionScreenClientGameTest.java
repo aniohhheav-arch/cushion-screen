@@ -90,6 +90,17 @@ public final class CushionScreenClientGameTest implements FabricClientGameTest {
             int[] blue = centre(ctx.takeScreenshot("cushionscreen_2_paused_blue"));
             check(blue[2] > 150 && blue[0] < 90 && blue[1] < 90, "paused at 2.5 s shows blue, got " + rgb(blue));
 
+            // close up and at a steep angle the whole picture must still show (it used to lose one triangle)
+            server.runCommand("tp @p 5 -57.6 9.2 56 0");
+            ctx.waitTicks(10);
+            Path angled = ctx.takeScreenshot("cushionscreen_2b_angled_close");
+            for (int dx : new int[]{-330, -220, -110, 0, 100}) {
+                int[] c = sample(angled, dx, -40);
+                check(c[2] > 140 && c[0] < 100, "angled view shows the picture at x offset " + dx + ", got " + rgb(c));
+            }
+            server.runCommand("tp @p 0.5 -56 -4 0 0");
+            ctx.waitTicks(10);
+
             // the block lights up while it shows a video
             boolean lit = server.computeOnServer(s -> s.overworld().getBlockState(ORIGIN).getValue(dev.cushionscreen.block.CushionScreenBlock.LIT));
             check(lit, "screen emits light");
@@ -184,6 +195,27 @@ public final class CushionScreenClientGameTest implements FabricClientGameTest {
             long r = 0, g = 0, b = 0, n = 0;
             for (int y = cy - 6; y <= cy + 6; y++) {
                 for (int x = cx - 6; x <= cx + 6; x++) {
+                    int p = img.getRGB(x, y);
+                    r += (p >> 16) & 255;
+                    g += (p >> 8) & 255;
+                    b += p & 255;
+                    n++;
+                }
+            }
+            return new int[]{(int) (r / n), (int) (g / n), (int) (b / n)};
+        } catch (java.io.IOException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    /** Average colour of a small patch at an offset from the middle of a screenshot. */
+    private static int[] sample(Path png, int dx, int dy) {
+        try {
+            BufferedImage img = ImageIO.read(png.toFile());
+            int cx = img.getWidth() / 2 + dx, cy = img.getHeight() / 2 + dy;
+            long r = 0, g = 0, b = 0, n = 0;
+            for (int y = cy - 4; y <= cy + 4; y++) {
+                for (int x = cx - 4; x <= cx + 4; x++) {
                     int p = img.getRGB(x, y);
                     r += (p >> 16) & 255;
                     g += (p >> 8) & 255;

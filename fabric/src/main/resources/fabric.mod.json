@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "Cushion Screen",
   "description": "Build giant screens out of padded Cushion Screen blocks and watch your own videos on them, in sync with everyone nearby.",
-  "authors": ["Cushion Screen contributors"],
+  "authors": ["aniohhheav-arch"],
   "license": "MIT",
   "icon": "assets/cushionscreen/icon.png",
   "environment": "*",

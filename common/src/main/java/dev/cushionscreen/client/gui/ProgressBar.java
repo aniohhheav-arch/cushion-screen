@@ -33,14 +33,16 @@ final class ProgressBar extends AbstractWidget {
         int x = getX(), y = getY(), w = getWidth(), h = getHeight();
         int mid = y + h / 2;
         boolean hover = isHovered() || isDragging();
-        int trackH = hover ? 4 : 2;
-        g.fill(x, mid - trackH / 2, x + w, mid + (trackH + 1) / 2, 0x55FFFFFF);
+        int trackH = hover ? 6 : 4;
+        int top = mid - trackH / 2, bottom = top + trackH;
+        g.fill(x, top, x + w, bottom, 0x66FFFFFF);
         double v = shownValue();
         int fillX = x + (int) Math.round(w * v);
-        g.fill(x, mid - trackH / 2, fillX, mid + (trackH + 1) / 2, active ? 0xFFF0584A : 0xFF777777);
-        if (active && hover) {
-            g.fill(fillX - 3, mid - 4, fillX + 3, mid + 4, 0xFFFFFFFF);
-        }
+        g.fill(x, top, fillX, bottom, active ? 0xFFF0584A : 0xFF777777);
+        // the handle is always shown, so it reads as something to drag
+        int hw = hover ? 4 : 3;
+        g.fill(fillX - hw - 1, mid - 7, fillX + hw + 1, mid + 7, 0xFF1A1D24);
+        g.fill(fillX - hw, mid - 6, fillX + hw, mid + 6, active ? 0xFFFFFFFF : 0xFF9A9A9A);
     }
 
     private double valueAt(double mouseX) {

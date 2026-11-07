@@ -185,6 +185,11 @@ public final class ScreenBlockRenderer implements BlockEntityRenderer<CushionScr
         // on-screen display after any change, fading out
         long sinceChange = now - ClientScreens.changedAt(d.id());
         s.osdAlpha = media == null ? 0f : sinceChange < 2500 ? 1f : Math.max(0f, 1f - (sinceChange - 2500) / 500f);
+        // while the crosshair is on the screen, keep the time and progress bar up
+        if (media != null && Minecraft.getInstance().hitResult instanceof net.minecraft.world.phys.BlockHitResult hit
+            && hit.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK && ClientScreens.shapeAt(hit.getBlockPos()) == shape) {
+            s.osdAlpha = 1f;
+        }
         String icon = switch (d.playback().status()) {
             case PLAYING -> "▶";
             case PAUSED -> "❚❚";
@@ -403,7 +408,9 @@ public final class ScreenBlockRenderer implements BlockEntityRenderer<CushionScr
                                      float z, int argb, int rotation) {
         float[][] uv = {{0, 1}, {1, 1}, {1, 0}, {0, 0}}; // bottom-left, bottom-right, top-right, top-left
         int k = rotation & 3;
-        out.submitCustomGeometry(poseStack, RenderTypes.text(tex), (pose, vc) -> {
+        // Same depth treatment as every other layer: mixing offset and non-offset layers lets the black panel win
+        // over the picture on one triangle when the screen is seen up close at an angle.
+        out.submitCustomGeometry(poseStack, RenderTypes.textPolygonOffset(tex), (pose, vc) -> {
             float[] a = uv[k % 4], bb = uv[(k + 1) % 4], c = uv[(k + 2) % 4], d = uv[(k + 3) % 4];
             v(vc, pose, x0, y0, z, a[0], a[1], argb);
             v(vc, pose, x1, y0, z, bb[0], bb[1], argb);
