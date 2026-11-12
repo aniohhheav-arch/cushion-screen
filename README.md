@@ -1,4 +1,4 @@
-# OwnerPowers v3.9.0 — downloads
+# OwnerPowers v3.10.0 — downloads
 
 - [OwnerPowers.jar](https://github.com/aniohhheav-arch/cushion-screen/raw/ownerpowers/OwnerPowers.jar) — the server plugin (put in `plugins/`)
 - [OwnerPowersPack.zip](https://github.com/aniohhheav-arch/cushion-screen/raw/ownerpowers/OwnerPowersPack.zip) — resource pack (upload to mc-packs.net)
